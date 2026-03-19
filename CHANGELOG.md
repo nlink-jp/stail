@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-03-19
+
 ### Fixed
 
 - **Goroutine leak in Socket Mode** — The WebSocket reader goroutine now selects on `ctx.Done()` when sending to channels, preventing it from blocking indefinitely after the session loop exits.
