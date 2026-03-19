@@ -1,0 +1,11 @@
+# Build output
+bin/
+
+# macOS
+.DS_Store
+
+# Go
+*.test
+
+# External reference (read-only, not part of this project)
+external/
