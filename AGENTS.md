@@ -133,6 +133,56 @@ if errors.Is(err, os.ErrNotExist) { ... }
 
 ---
 
+## リリースワークフロー
+
+CI/CD はなく、手動リリース。バージョンは [Semantic Versioning](https://semver.org/) に従う。
+
+### バージョニング方針
+
+| 変更種別 | バンプ例 |
+|---|---|
+| 新機能追加 | `0.1.2` → `0.1.3` |
+| バグ修正 | `0.1.2` → `0.1.3` |
+| 破壊的変更 | `0.1.x` → `0.2.0` |
+
+### リリース手順
+
+```bash
+# 1. CHANGELOG.md の [Unreleased] セクションを新バージョンに確定
+#    [Unreleased] → [0.1.3] - YYYY-MM-DD
+
+# 2. 変更をコミット
+git add <files>
+git commit -m "chore: release vX.Y.Z"
+
+# 3. タグを打つ
+git tag vX.Y.Z
+
+# 4. プッシュ
+git push origin main
+git push origin vX.Y.Z
+
+# 5. 全プラットフォーム向けバイナリをビルド
+make build-all
+# → bin/stail-darwin-amd64, bin/stail-darwin-arm64,
+#    bin/stail-linux-amd64, bin/stail-linux-arm64,
+#    bin/stail-windows-amd64.exe
+
+# 6. GitHub Release を作成してバイナリをアップロード
+gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
+gh release upload vX.Y.Z bin/stail-darwin-amd64 bin/stail-darwin-arm64 \
+  bin/stail-linux-amd64 bin/stail-linux-arm64 bin/stail-windows-amd64.exe
+```
+
+### チェックリスト
+
+- [ ] `CHANGELOG.md` の `[Unreleased]` → `[X.Y.Z] - YYYY-MM-DD` に確定
+- [ ] `README.md` / `README.ja.md` に新機能・フラグを追記済み
+- [ ] `make test` がすべて PASS
+- [ ] タグ・コミット・バイナリ・GitHub Release を確認
+
+---
+
 ## ビルドルール
 
 ```bash
