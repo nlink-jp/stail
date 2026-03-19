@@ -138,6 +138,9 @@ stail export -c "#general" \
 stail export -c "#general" --output archive.json --save-dir ./attachments
 ```
 
+> **Note:** `export` fetches the full channel history into memory before writing.
+> For very large channels, use `--start` / `--end` to export in smaller time ranges.
+
 **Export JSON schema** (compatible with scat):
 
 ```json

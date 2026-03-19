@@ -108,6 +108,63 @@ func WriteExportedLog(w io.Writer, log ExportedLog) error {
 	return enc.Encode(log)
 }
 
+// WriteExportStream writes a scat-compatible JSON document from pages of messages
+// without accumulating all messages into a single slice.
+// pages must be in newest-first order (as returned by the Slack API);
+// output is written in chronological (oldest-first) order.
+func WriteExportStream(w io.Writer, channelName string, pages [][]slack.Message) error {
+	ts := time.Now().UTC().Format(time.RFC3339)
+	tsJSON, _ := json.Marshal(ts)
+	chJSON, _ := json.Marshal(channelName)
+
+	if _, err := fmt.Fprintf(w, "{\n  \"export_timestamp\": %s,\n  \"channel_name\": %s,\n  \"messages\": [", tsJSON, chJSON); err != nil {
+		return err
+	}
+
+	first := true
+	// Iterate pages in reverse (oldest page first), messages within each page in reverse.
+	for i := len(pages) - 1; i >= 0; i-- {
+		page := pages[i]
+		for j := len(page) - 1; j >= 0; j-- {
+			if !first {
+				if _, err := fmt.Fprint(w, ","); err != nil {
+					return err
+				}
+			}
+			em := messageToExported(page[j])
+			b, err := json.Marshal(em)
+			if err != nil {
+				return err
+			}
+			if _, err := fmt.Fprintf(w, "\n    %s", b); err != nil {
+				return err
+			}
+			first = false
+		}
+	}
+
+	_, err := fmt.Fprintln(w, "\n  ]\n}")
+	return err
+}
+
+func messageToExported(m slack.Message) exportedMessage {
+	files := make([]exportedFile, 0, len(m.Files))
+	for _, f := range m.Files {
+		files = append(files, exportedFile{ID: f.ID, Name: f.Name, MimeType: f.MimeType})
+	}
+	return exportedMessage{
+		UserID:              m.UserID,
+		UserName:            m.UserName,
+		PostType:            m.PostType,
+		Timestamp:           m.Timestamp,
+		TimestampUnix:       m.TimestampUnix,
+		Text:                m.Text,
+		Files:               files,
+		ThreadTimestampUnix: m.ThreadTimestampUnix,
+		IsReply:             m.IsReply,
+	}
+}
+
 // writeJSONLine writes a single message as a compact JSON line (JSONL).
 func writeJSONLine(w io.Writer, msg slack.Message) error {
 	em := exportedMessage{

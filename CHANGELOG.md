@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Goroutine leak in Socket Mode** — The WebSocket reader goroutine now selects on `ctx.Done()` when sending to channels, preventing it from blocking indefinitely after the session loop exits.
+- **Path traversal defense in file download** — `f.ID` is now sanitized through the same `sanitizeFilename` function as `f.Name`, preventing unexpected path components from Slack API responses.
+- **WebSocket URL validation** — `apps.connections.open` response is now validated to have a `wss://` scheme before dialing, guarding against unexpected URLs.
+- **Filename length limit** — Downloaded filenames are now truncated at 200 bytes (rune-boundary safe) to avoid filesystem errors on long Slack file names.
+- **Export memory footprint** — Channel history is now collected page-by-page and streamed to output without a full-slice reverse copy, reducing peak memory overhead for large exports.
+
 ## [0.1.0] - 2026-03-19
 
 ### Added

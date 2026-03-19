@@ -172,6 +172,9 @@ func (c *SlackSocketClient) Run(ctx context.Context, filter ChannelFilter, handl
 		if err != nil {
 			return fmt.Errorf("open socket connection: %w", err)
 		}
+		if !strings.HasPrefix(wsURL, "wss://") {
+			return fmt.Errorf("invalid websocket URL from Slack (expected wss://): %q", wsURL)
+		}
 
 		shouldReconnect, err := c.runSession(ctx, wsURL, filter, handler)
 		if err != nil {
@@ -210,10 +213,17 @@ func (c *SlackSocketClient) runSession(ctx context.Context, wsURL string, filter
 		for {
 			_, msg, err := conn.ReadMessage()
 			if err != nil {
-				errCh <- err
+				select {
+				case errCh <- err:
+				case <-ctx.Done():
+				}
 				return
 			}
-			msgCh <- msg
+			select {
+			case msgCh <- msg:
+			case <-ctx.Done():
+				return
+			}
 		}
 	}()
 

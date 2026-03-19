@@ -92,21 +92,24 @@ func runExport(_ *cobra.Command, _ []string) error {
 		opts.Latest = fmt.Sprintf("%d.000000", t.Unix())
 	}
 
-	// Fetch all messages with cursor pagination.
-	var allMsgs []slack.Message
+	// Fetch all messages page by page. Each page is kept separate so that
+	// WriteExportStream can iterate in reverse without a full-slice reverse copy.
+	var pages [][]slack.Message
 	for {
 		rawMsgs, err := client.FetchHistory(ctx, channelID, opts)
 		if err != nil {
 			return fmt.Errorf("fetch history: %w", err)
 		}
+		page := make([]slack.Message, 0, len(rawMsgs))
 		for _, raw := range rawMsgs {
-			msg := slack.EnrichMessage(ctx, raw, channelID, channelName, users)
-			allMsgs = append(allMsgs, msg)
+			page = append(page, slack.EnrichMessage(ctx, raw, channelID, channelName, users))
+		}
+		if len(page) > 0 {
+			pages = append(pages, page)
 		}
 		if len(rawMsgs) < opts.Limit {
 			break // no more pages
 		}
-		// Use the oldest ts from this page as the cursor (pagination via oldest).
 		if len(rawMsgs) > 0 {
 			opts.Latest = rawMsgs[len(rawMsgs)-1].Ts
 		}
@@ -115,18 +118,14 @@ func runExport(_ *cobra.Command, _ []string) error {
 		}
 	}
 
-	// Messages from API are newest-first; reverse to chronological order.
-	for i, j := 0, len(allMsgs)-1; i < j; i, j = i+1, j-1 {
-		allMsgs[i], allMsgs[j] = allMsgs[j], allMsgs[i]
-	}
-
 	if exportSaveDir != "" {
-		for _, msg := range allMsgs {
-			saveMessageFiles(ctx, client, msg, exportSaveDir)
+		// Iterate chronologically for consistent save order.
+		for i := len(pages) - 1; i >= 0; i-- {
+			for j := len(pages[i]) - 1; j >= 0; j-- {
+				saveMessageFiles(ctx, client, pages[i][j], exportSaveDir)
+			}
 		}
 	}
-
-	log := format.NewExportedLog("#"+channelName, allMsgs)
 
 	// Determine output destination.
 	out := os.Stdout
@@ -139,5 +138,5 @@ func runExport(_ *cobra.Command, _ []string) error {
 		out = f
 	}
 
-	return format.WriteExportedLog(out, log)
+	return format.WriteExportStream(out, "#"+channelName, pages)
 }

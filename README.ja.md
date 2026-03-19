@@ -141,6 +141,9 @@ stail export -c "#general" \
 stail export -c "#general" --output archive.json --save-dir ./attachments
 ```
 
+> **注意:** `export` はチャンネルの全履歴をメモリに保持してから出力します。
+> 非常に大きなチャンネルをエクスポートする場合は `--start` / `--end` で期間を絞ることを推奨します。
+
 **エクスポート JSON スキーマ**（scat と互換）:
 
 ```json
