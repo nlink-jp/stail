@@ -14,6 +14,7 @@ scat が Slack に**投稿する**ツールであるのに対し、stail は Sla
 - **リアルタイムストリーミング** — `stail tail -f` で Slack Socket Mode (WebSocket)
   に接続し、新着メッセージを随時表示します。
 - **過去ログの表示** — `stail tail -n 50` で最新 N 件を表示して終了します。
+- **絶対時刻指定の表示** — `stail tail --since 2024-01-15T10:00:00Z` で指定した時刻以降のメッセージを全件表示します（Slack ts 形式または RFC3339 形式に対応）。
 - **チャンネルエクスポート** — `stail export` でチャンネルの全履歴を scat の
   export log 形式と互換性のある JSON ファイルとして保存します。
 - **チャンネル一覧** — `stail channel list` でアクセス可能な全チャンネルと
@@ -104,6 +105,13 @@ stail tail
 # 指定チャンネルの最新 50 件を表示
 stail tail -c "#general" -n 50
 
+# 絶対時刻以降のメッセージを全件表示（RFC3339 または Slack ts 形式）
+stail tail -c "#general" --since 2024-01-15T10:00:00Z
+stail tail -c "#general" --since 1742378100.123456
+
+# 指定時刻以降の最新 5 件を表示
+stail tail -c "#general" --since 2024-01-15T10:00:00Z -n 5
+
 # フォローモード: リアルタイムで新着メッセージを表示（app_token が必要）
 stail tail -c "#general" -f
 
@@ -132,7 +140,7 @@ stail export -c "#general"
 # ファイルへ出力
 stail export -c "#general" --output archive.json
 
-# 期間を指定してエクスポート（RFC3339 形式）
+# 期間を指定してエクスポート（RFC3339 または Slack ts 形式）
 stail export -c "#general" \
   --start 2025-01-01T00:00:00Z \
   --end   2025-02-01T00:00:00Z
@@ -143,6 +151,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 
 > **注意:** `export` はチャンネルの全履歴をメモリに保持してから出力します。
 > 非常に大きなチャンネルをエクスポートする場合は `--start` / `--end` で期間を絞ることを推奨します。
+> どちらのフラグも RFC3339 形式（例: `2025-01-01T00:00:00Z`）と Slack ts 形式（例: `1742378100.000000`）の両方に対応しています。
 
 **エクスポート JSON スキーマ**（scat と互換）:
 

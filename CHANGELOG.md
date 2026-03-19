@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-03-20
+
+### Added
+
+- **`tail --since` / `-S`** — Show messages from an absolute timestamp onwards. Accepts Slack ts format (`1742378100.123456`) or RFC3339 (`2024-01-15T10:00:00Z`). Without `-n`, all messages since that time are fetched (paginated). Combined with `-n`, returns the newest N messages since that timestamp.
+- **`export --start` / `--end` accept Slack ts** — Both flags now accept Slack ts format in addition to RFC3339, consistent with `tail --since`.
+
 ## [0.1.2] - 2026-03-19
 
 ### Added

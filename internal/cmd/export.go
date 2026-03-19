@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/magifd2/stail/internal/format"
 	"github.com/magifd2/stail/internal/slack"
@@ -39,8 +38,8 @@ var (
 func init() {
 	exportCmd.Flags().StringVarP(&exportChannel, "channel", "c", "", "channel name or ID (required)")
 	exportCmd.Flags().StringVar(&exportOutput, "output", "-", "output file path (- for stdout)")
-	exportCmd.Flags().StringVar(&exportStart, "start", "", "start time in RFC3339 format")
-	exportCmd.Flags().StringVar(&exportEnd, "end", "", "end time in RFC3339 format")
+	exportCmd.Flags().StringVar(&exportStart, "start", "", "start time (Slack ts or RFC3339, e.g. 2024-01-15T00:00:00Z)")
+	exportCmd.Flags().StringVar(&exportEnd, "end", "", "end time (Slack ts or RFC3339, e.g. 2024-02-01T00:00:00Z)")
 	exportCmd.Flags().StringVar(&exportSaveDir, "save-dir", "", "directory to save attached files (created if absent)")
 	_ = exportCmd.MarkFlagRequired("channel")
 	rootCmd.AddCommand(exportCmd)
@@ -78,18 +77,18 @@ func runExport(_ *cobra.Command, _ []string) error {
 
 	opts := slack.HistoryOptions{Limit: 200}
 	if exportStart != "" {
-		t, err := time.Parse(time.RFC3339, exportStart)
+		ts, err := parseTimestamp(exportStart)
 		if err != nil {
 			return fmt.Errorf("parse --start: %w", err)
 		}
-		opts.Oldest = fmt.Sprintf("%d.000000", t.Unix())
+		opts.Oldest = ts
 	}
 	if exportEnd != "" {
-		t, err := time.Parse(time.RFC3339, exportEnd)
+		ts, err := parseTimestamp(exportEnd)
 		if err != nil {
 			return fmt.Errorf("parse --end: %w", err)
 		}
-		opts.Latest = fmt.Sprintf("%d.000000", t.Unix())
+		opts.Latest = ts
 	}
 
 	// Fetch all messages page by page. Each page is kept separate so that

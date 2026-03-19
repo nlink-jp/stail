@@ -13,6 +13,7 @@ It is designed as a companion to [scat](https://github.com/magifd2/scat): scat
 - **Real-time streaming** — `stail tail -f` connects via Slack Socket Mode
   (WebSocket) and prints new messages as they arrive.
 - **Historical tail** — `stail tail -n 50` shows the last N messages and exits.
+- **Timestamp-based tail** — `stail tail --since 2024-01-15T10:00:00Z` streams all messages from an absolute point in time (Slack ts or RFC3339).
 - **Channel export** — `stail export` downloads full channel history as a
   structured JSON file compatible with scat's export log format.
 - **Channel listing** — `stail channel list` shows all accessible channels with
@@ -101,6 +102,13 @@ stail tail
 # Show last 50 messages from a specific channel
 stail tail -c "#general" -n 50
 
+# Show all messages since an absolute timestamp (RFC3339 or Slack ts)
+stail tail -c "#general" --since 2024-01-15T10:00:00Z
+stail tail -c "#general" --since 1742378100.123456
+
+# Show the newest 5 messages since a given timestamp
+stail tail -c "#general" --since 2024-01-15T10:00:00Z -n 5
+
 # Follow mode: stream new messages in real time (requires app_token)
 stail tail -c "#general" -f
 
@@ -129,7 +137,7 @@ stail export -c "#general"
 # Export to a file
 stail export -c "#general" --output archive.json
 
-# Export a specific time range
+# Export a specific time range (RFC3339 or Slack ts)
 stail export -c "#general" \
   --start 2025-01-01T00:00:00Z \
   --end   2025-02-01T00:00:00Z
@@ -140,6 +148,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 
 > **Note:** `export` fetches the full channel history into memory before writing.
 > For very large channels, use `--start` / `--end` to export in smaller time ranges.
+> Both flags accept RFC3339 (e.g. `2025-01-01T00:00:00Z`) or Slack ts format (e.g. `1742378100.000000`).
 
 **Export JSON schema** (compatible with scat):
 
