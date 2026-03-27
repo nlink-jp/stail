@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-03-28
+
+### Changed
+- Migrated to nlink-jp organisation — module path updated to `github.com/nlink-jp/stail`
+- Build output directory changed from `bin/` to `dist/`
+
 ## [0.1.4] - 2026-03-20
 
 ### Fixed
