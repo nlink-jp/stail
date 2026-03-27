@@ -21,7 +21,7 @@ PLATFORMS := \
 	linux/arm64 \
 	windows/amd64
 
-.PHONY: build build-all test lint clean tidy help
+.PHONY: build build-all package test lint clean tidy help
 
 ## build: Build binary for the current OS/Arch → ./dist/stail
 build:
@@ -42,6 +42,16 @@ define build_platform
 	GOOS=$(OS) GOARCH=$(ARCH) go build $(LDFLAGS) -o $(OUT) .
 
 endef
+
+## package: Cross-compile for all target platforms and create .zip archives → dist/
+package: build-all
+	$(foreach platform,$(PLATFORMS), \
+		$(eval OS   := $(word 1,$(subst /, ,$(platform)))) \
+		$(eval ARCH := $(word 2,$(subst /, ,$(platform)))) \
+		$(eval EXT  := $(if $(filter windows,$(OS)),.exe,)) \
+		$(eval BIN  := $(BIN_DIR)/$(BINARY)-$(OS)-$(ARCH)$(EXT)) \
+		$(eval ZIP  := $(BIN_DIR)/$(BINARY)-$(VERSION)-$(OS)-$(ARCH).zip) \
+		zip -j $(ZIP) $(BIN) ;)
 
 ## test: Run all unit tests
 test:
