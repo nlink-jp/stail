@@ -1,5 +1,5 @@
 # Build output
-bin/
+dist/
 
 # macOS
 .DS_Store
