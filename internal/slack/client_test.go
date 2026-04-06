@@ -318,6 +318,29 @@ func TestEnrichMessage_Bot(t *testing.T) {
 	}
 }
 
+func TestEnrichMessage_BotUserIDFallback(t *testing.T) {
+	client := newMockClient(func(_ string, _ map[string]string) (interface{}, error) {
+		return nil, fmt.Errorf("unexpected API call")
+	})
+
+	users := slack.NewUserCache(client)
+	raw := slack.RawMessage{
+		Type:     "message",
+		BotID:    "B001",
+		Username: "webhook-bot",
+		Text:     "automated message",
+		Ts:       "1700000001.500000",
+	}
+	msg := slack.EnrichMessage(context.Background(), raw, "C001", "general", users)
+
+	if msg.UserID != "B001" {
+		t.Errorf("UserID = %q, want B001 (fallback to BotID)", msg.UserID)
+	}
+	if msg.PostType != slack.PostTypeBot {
+		t.Errorf("PostType = %q, want bot", msg.PostType)
+	}
+}
+
 func TestEnrichMessage_Reply(t *testing.T) {
 	client := newMockClient(func(_ string, _ map[string]string) (interface{}, error) {
 		return map[string]interface{}{
@@ -344,6 +367,81 @@ func TestEnrichMessage_Reply(t *testing.T) {
 	}
 	if msg.ThreadTimestampUnix != "1700000000.000000" {
 		t.Errorf("ThreadTimestampUnix = %q", msg.ThreadTimestampUnix)
+	}
+}
+
+func TestEnrichMessage_Attachments(t *testing.T) {
+	client := newMockClient(func(_ string, _ map[string]string) (interface{}, error) {
+		return nil, fmt.Errorf("unexpected API call")
+	})
+	users := slack.NewUserCache(client)
+
+	raw := slack.RawMessage{
+		Type:  "message",
+		BotID: "B001", Username: "alert-bot",
+		Text: "",
+		Ts:   "1700000003.000000",
+		Attachments: []slack.RawAttachment{
+			{
+				Fallback:  "Server is down",
+				Color:     "#ff0000",
+				Title:     "Alert",
+				TitleLink: "https://example.com/alert/1",
+				Text:      "Production server is not responding",
+				Fields: []slack.RawAttachmentField{
+					{Title: "Severity", Value: "Critical", Short: true},
+				},
+				Footer: "Monitoring Bot",
+			},
+		},
+	}
+	msg := slack.EnrichMessage(context.Background(), raw, "C001", "general", users)
+
+	if len(msg.Attachments) != 1 {
+		t.Fatalf("expected 1 attachment, got %d", len(msg.Attachments))
+	}
+	a := msg.Attachments[0]
+	if a.Fallback != "Server is down" {
+		t.Errorf("Fallback = %q", a.Fallback)
+	}
+	if a.Color != "#ff0000" {
+		t.Errorf("Color = %q", a.Color)
+	}
+	if a.Title != "Alert" {
+		t.Errorf("Title = %q", a.Title)
+	}
+	if a.Text != "Production server is not responding" {
+		t.Errorf("Text = %q", a.Text)
+	}
+	if len(a.Fields) != 1 || a.Fields[0].Title != "Severity" {
+		t.Errorf("Fields = %+v", a.Fields)
+	}
+	if a.Footer != "Monitoring Bot" {
+		t.Errorf("Footer = %q", a.Footer)
+	}
+}
+
+func TestEnrichMessage_Blocks(t *testing.T) {
+	client := newMockClient(func(_ string, _ map[string]string) (interface{}, error) {
+		return nil, fmt.Errorf("unexpected API call")
+	})
+	users := slack.NewUserCache(client)
+
+	blocksJSON := []byte(`[{"type":"section","text":{"type":"mrkdwn","text":"Hello *world*"}}]`)
+	raw := slack.RawMessage{
+		Type:  "message",
+		BotID: "B001", Username: "my-bot",
+		Text:   "Hello world",
+		Ts:     "1700000004.000000",
+		Blocks: blocksJSON,
+	}
+	msg := slack.EnrichMessage(context.Background(), raw, "C001", "general", users)
+
+	if msg.Blocks == nil {
+		t.Fatal("expected non-nil Blocks")
+	}
+	if string(msg.Blocks) != string(blocksJSON) {
+		t.Errorf("Blocks = %s, want %s", msg.Blocks, blocksJSON)
 	}
 }
 

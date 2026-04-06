@@ -176,6 +176,88 @@ func TestNewExportedLog(t *testing.T) {
 	}
 }
 
+func TestWriteMessage_JSON_Attachments(t *testing.T) {
+	var buf bytes.Buffer
+	msg := makeMsg("U001", "alice", "", "2024-01-15T10:23:45Z", "C001", "general")
+	msg.Attachments = []slack.Attachment{
+		{
+			Fallback: "Alert: server down",
+			Color:    "#ff0000",
+			Title:    "Alert",
+			Text:     "Production server is not responding",
+			Fields: []slack.AttachmentField{
+				{Title: "Severity", Value: "Critical", Short: true},
+			},
+			Footer: "Monitoring",
+		},
+	}
+
+	if err := format.WriteMessage(&buf, msg, format.FormatJSON); err != nil {
+		t.Fatalf("WriteMessage JSON: %v", err)
+	}
+
+	var got map[string]interface{}
+	if err := json.Unmarshal([]byte(strings.TrimSpace(buf.String())), &got); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+
+	attachments, ok := got["attachments"].([]interface{})
+	if !ok || len(attachments) != 1 {
+		t.Fatalf("expected 1 attachment, got %v", got["attachments"])
+	}
+	att := attachments[0].(map[string]interface{})
+	if att["fallback"] != "Alert: server down" {
+		t.Errorf("fallback = %v", att["fallback"])
+	}
+	if att["color"] != "#ff0000" {
+		t.Errorf("color = %v", att["color"])
+	}
+	if att["title"] != "Alert" {
+		t.Errorf("title = %v", att["title"])
+	}
+}
+
+func TestWriteMessage_JSON_Blocks(t *testing.T) {
+	var buf bytes.Buffer
+	msg := makeMsg("U001", "alice", "Hello world", "2024-01-15T10:23:45Z", "C001", "general")
+	msg.Blocks = json.RawMessage(`[{"type":"section","text":{"type":"mrkdwn","text":"Hello *world*"}}]`)
+
+	if err := format.WriteMessage(&buf, msg, format.FormatJSON); err != nil {
+		t.Fatalf("WriteMessage JSON: %v", err)
+	}
+
+	var got map[string]interface{}
+	if err := json.Unmarshal([]byte(strings.TrimSpace(buf.String())), &got); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+
+	blocks, ok := got["blocks"].([]interface{})
+	if !ok || len(blocks) != 1 {
+		t.Fatalf("expected 1 block, got %v", got["blocks"])
+	}
+	block := blocks[0].(map[string]interface{})
+	if block["type"] != "section" {
+		t.Errorf("block type = %v", block["type"])
+	}
+}
+
+func TestWriteMessage_Text_AttachmentFallback(t *testing.T) {
+	var buf bytes.Buffer
+	msg := makeMsg("U001", "alice", "", "2024-01-15T10:23:45Z", "C001", "general")
+	msg.Attachments = []slack.Attachment{
+		{Fallback: "Server is down"},
+	}
+
+	if err := format.WriteMessage(&buf, msg, format.FormatText); err != nil {
+		t.Fatalf("WriteMessage: %v", err)
+	}
+
+	line := buf.String()
+	if !strings.Contains(line, "[添付: Server is down]") {
+		t.Errorf("text line should contain attachment fallback: %q", line)
+	}
+}
+
 func TestWriteExportedLog(t *testing.T) {
 	msgs := []slack.Message{
 		makeMsg("U001", "alice", "hello export", "2024-01-15T10:00:00Z", "C001", "general"),
