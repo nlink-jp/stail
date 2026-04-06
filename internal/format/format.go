@@ -48,15 +48,17 @@ func WriteMessage(w io.Writer, msg slack.Message, fmt Format) error {
 
 // exportedMessage matches scat's ExportedMessage JSON schema.
 type exportedMessage struct {
-	UserID              string         `json:"user_id"`
-	UserName            string         `json:"user_name,omitempty"`
-	PostType            slack.PostType `json:"post_type,omitempty"`
-	Timestamp           string         `json:"timestamp"`
-	TimestampUnix       string         `json:"timestamp_unix"`
-	Text                string         `json:"text"`
-	Files               []exportedFile `json:"files"`
-	ThreadTimestampUnix string         `json:"thread_timestamp_unix,omitempty"`
-	IsReply             bool           `json:"is_reply"`
+	UserID              string               `json:"user_id"`
+	UserName            string               `json:"user_name,omitempty"`
+	PostType            slack.PostType        `json:"post_type,omitempty"`
+	Timestamp           string               `json:"timestamp"`
+	TimestampUnix       string               `json:"timestamp_unix"`
+	Text                string               `json:"text"`
+	Files               []exportedFile        `json:"files"`
+	Attachments         []exportedAttachment  `json:"attachments,omitempty"`
+	Blocks              json.RawMessage       `json:"blocks,omitempty"`
+	ThreadTimestampUnix string               `json:"thread_timestamp_unix,omitempty"`
+	IsReply             bool                 `json:"is_reply"`
 }
 
 // exportedFile matches scat's ExportedFile JSON schema.
@@ -64,6 +66,26 @@ type exportedFile struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	MimeType string `json:"mimetype"`
+}
+
+// exportedAttachment represents a legacy rich attachment in the export schema.
+type exportedAttachment struct {
+	Fallback  string                    `json:"fallback,omitempty"`
+	Color     string                    `json:"color,omitempty"`
+	Pretext   string                    `json:"pretext,omitempty"`
+	Title     string                    `json:"title,omitempty"`
+	TitleLink string                    `json:"title_link,omitempty"`
+	Text      string                    `json:"text,omitempty"`
+	Fields    []exportedAttachmentField `json:"fields,omitempty"`
+	Footer    string                    `json:"footer,omitempty"`
+	ImageURL  string                    `json:"image_url,omitempty"`
+}
+
+// exportedAttachmentField is a key-value pair inside a legacy attachment.
+type exportedAttachmentField struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+	Short bool   `json:"short"`
 }
 
 // ExportedLog matches scat's ExportedLog JSON schema.
@@ -78,21 +100,7 @@ type ExportedLog struct {
 func NewExportedLog(channelName string, messages []slack.Message) ExportedLog {
 	exported := make([]exportedMessage, 0, len(messages))
 	for _, m := range messages {
-		files := make([]exportedFile, 0, len(m.Files))
-		for _, f := range m.Files {
-			files = append(files, exportedFile{ID: f.ID, Name: f.Name, MimeType: f.MimeType})
-		}
-		exported = append(exported, exportedMessage{
-			UserID:              m.UserID,
-			UserName:            m.UserName,
-			PostType:            m.PostType,
-			Timestamp:           m.Timestamp,
-			TimestampUnix:       m.TimestampUnix,
-			Text:                m.Text,
-			Files:               files,
-			ThreadTimestampUnix: m.ThreadTimestampUnix,
-			IsReply:             m.IsReply,
-		})
+		exported = append(exported, messageToExported(m))
 	}
 	return ExportedLog{
 		ExportTimestamp: time.Now().UTC().Format(time.RFC3339),
@@ -160,6 +168,8 @@ func messageToExported(m slack.Message) exportedMessage {
 		TimestampUnix:       m.TimestampUnix,
 		Text:                m.Text,
 		Files:               files,
+		Attachments:         toExportedAttachments(m.Attachments),
+		Blocks:              m.Blocks,
 		ThreadTimestampUnix: m.ThreadTimestampUnix,
 		IsReply:             m.IsReply,
 	}
@@ -167,17 +177,7 @@ func messageToExported(m slack.Message) exportedMessage {
 
 // writeJSONLine writes a single message as a compact JSON line (JSONL).
 func writeJSONLine(w io.Writer, msg slack.Message) error {
-	em := exportedMessage{
-		UserID:              msg.UserID,
-		UserName:            msg.UserName,
-		PostType:            msg.PostType,
-		Timestamp:           msg.Timestamp,
-		TimestampUnix:       msg.TimestampUnix,
-		Text:                msg.Text,
-		Files:               toExportedFiles(msg.Files),
-		ThreadTimestampUnix: msg.ThreadTimestampUnix,
-		IsReply:             msg.IsReply,
-	}
+	em := messageToExported(msg)
 	b, err := json.Marshal(em)
 	if err != nil {
 		return err
@@ -208,6 +208,25 @@ func writeTextLine(w io.Writer, msg slack.Message) error {
 	}
 
 	text := msg.Text
+	if len(msg.Attachments) > 0 {
+		for _, a := range msg.Attachments {
+			label := a.Fallback
+			if label == "" {
+				label = a.Title
+			}
+			if label == "" {
+				label = a.Text
+			}
+			if label != "" {
+				info := "[添付: " + label + "]"
+				if text == "" {
+					text = info
+				} else {
+					text = text + " " + info
+				}
+			}
+		}
+	}
 	if len(msg.Files) > 0 {
 		names := make([]string, len(msg.Files))
 		for i, f := range msg.Files {
@@ -243,4 +262,23 @@ func toExportedFiles(files []slack.File) []exportedFile {
 		ef = append(ef, exportedFile{ID: f.ID, Name: f.Name, MimeType: f.MimeType})
 	}
 	return ef
+}
+
+func toExportedAttachments(attachments []slack.Attachment) []exportedAttachment {
+	if len(attachments) == 0 {
+		return nil
+	}
+	ea := make([]exportedAttachment, 0, len(attachments))
+	for _, a := range attachments {
+		fields := make([]exportedAttachmentField, 0, len(a.Fields))
+		for _, f := range a.Fields {
+			fields = append(fields, exportedAttachmentField{Title: f.Title, Value: f.Value, Short: f.Short})
+		}
+		ea = append(ea, exportedAttachment{
+			Fallback: a.Fallback, Color: a.Color, Pretext: a.Pretext,
+			Title: a.Title, TitleLink: a.TitleLink, Text: a.Text,
+			Fields: fields, Footer: a.Footer, ImageURL: a.ImageURL,
+		})
+	}
+	return ea
 }

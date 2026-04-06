@@ -2,6 +2,7 @@
 package slack
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 )
@@ -48,17 +49,39 @@ type File struct {
 	URLPrivateDownload string `json:"-"` // not included in export JSON; time-limited URL
 }
 
+// Attachment represents a legacy rich attachment on a Slack message.
+type Attachment struct {
+	Fallback  string            `json:"fallback,omitempty"`
+	Color     string            `json:"color,omitempty"`
+	Pretext   string            `json:"pretext,omitempty"`
+	Title     string            `json:"title,omitempty"`
+	TitleLink string            `json:"title_link,omitempty"`
+	Text      string            `json:"text,omitempty"`
+	Fields    []AttachmentField `json:"fields,omitempty"`
+	Footer    string            `json:"footer,omitempty"`
+	ImageURL  string            `json:"image_url,omitempty"`
+}
+
+// AttachmentField is a key-value pair inside a legacy attachment.
+type AttachmentField struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+	Short bool   `json:"short"`
+}
+
 // Message is an enriched Slack message ready for output.
 type Message struct {
-	UserID              string   `json:"user_id"`
-	UserName            string   `json:"user_name"`
-	PostType            PostType `json:"post_type"`
-	Timestamp           string   `json:"timestamp"`      // RFC3339
-	TimestampUnix       string   `json:"timestamp_unix"` // raw Slack ts
-	Text                string   `json:"text"`
-	Files               []File   `json:"files"`
-	ThreadTimestampUnix string   `json:"thread_timestamp_unix,omitempty"`
-	IsReply             bool     `json:"is_reply"`
+	UserID              string          `json:"user_id"`
+	UserName            string          `json:"user_name"`
+	PostType            PostType        `json:"post_type"`
+	Timestamp           string          `json:"timestamp"`      // RFC3339
+	TimestampUnix       string          `json:"timestamp_unix"` // raw Slack ts
+	Text                string          `json:"text"`
+	Files               []File          `json:"files"`
+	Attachments         []Attachment    `json:"attachments,omitempty"`
+	Blocks              json.RawMessage `json:"blocks,omitempty"`
+	ThreadTimestampUnix string          `json:"thread_timestamp_unix,omitempty"`
+	IsReply             bool            `json:"is_reply"`
 
 	// Internal fields for channel resolution (not in export JSON).
 	ChannelID   string `json:"-"`
@@ -89,15 +112,17 @@ func ParseTimestamp(ts string) time.Time {
 
 // RawMessage is the JSON shape returned by conversations.history and conversations.replies.
 type RawMessage struct {
-	Type     string    `json:"type"`
-	SubType  string    `json:"subtype"`
-	User     string    `json:"user"`
-	BotID    string    `json:"bot_id"`
-	Username string    `json:"username"` // bot display name
-	Text     string    `json:"text"`
-	Ts       string    `json:"ts"`
-	ThreadTs string    `json:"thread_ts"`
-	Files    []RawFile `json:"files"`
+	Type        string          `json:"type"`
+	SubType     string          `json:"subtype"`
+	User        string          `json:"user"`
+	BotID       string          `json:"bot_id"`
+	Username    string          `json:"username"` // bot display name
+	Text        string          `json:"text"`
+	Ts          string          `json:"ts"`
+	ThreadTs    string          `json:"thread_ts"`
+	Files       []RawFile       `json:"files"`
+	Attachments []RawAttachment `json:"attachments"`
+	Blocks      json.RawMessage `json:"blocks"`
 }
 
 // RawFile is a file attachment as returned by the Slack API.
@@ -106,4 +131,24 @@ type RawFile struct {
 	Name               string `json:"name"`
 	MimeType           string `json:"mimetype"`
 	URLPrivateDownload string `json:"url_private_download"`
+}
+
+// RawAttachment is a legacy rich attachment as returned by the Slack API.
+type RawAttachment struct {
+	Fallback  string               `json:"fallback"`
+	Color     string               `json:"color"`
+	Pretext   string               `json:"pretext"`
+	Title     string               `json:"title"`
+	TitleLink string               `json:"title_link"`
+	Text      string               `json:"text"`
+	Fields    []RawAttachmentField `json:"fields"`
+	Footer    string               `json:"footer"`
+	ImageURL  string               `json:"image_url"`
+}
+
+// RawAttachmentField is a key-value pair inside a legacy Slack attachment.
+type RawAttachmentField struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+	Short bool   `json:"short"`
 }

@@ -338,6 +338,12 @@ func EnrichMessage(ctx context.Context, raw RawMessage, channelID, channelName s
 		userName = u.DisplayNameOrName()
 	}
 
+	// Fall back to BotID when the user field is empty (common for bot messages).
+	userID := raw.User
+	if userID == "" {
+		userID = raw.BotID
+	}
+
 	files := make([]File, 0, len(raw.Files))
 	for _, f := range raw.Files {
 		files = append(files, File{
@@ -354,16 +360,31 @@ func EnrichMessage(ctx context.Context, raw RawMessage, channelID, channelName s
 		ts = t.UTC().Format(time.RFC3339)
 	}
 
+	attachments := make([]Attachment, 0, len(raw.Attachments))
+	for _, a := range raw.Attachments {
+		fields := make([]AttachmentField, 0, len(a.Fields))
+		for _, f := range a.Fields {
+			fields = append(fields, AttachmentField{Title: f.Title, Value: f.Value, Short: f.Short})
+		}
+		attachments = append(attachments, Attachment{
+			Fallback: a.Fallback, Color: a.Color, Pretext: a.Pretext,
+			Title: a.Title, TitleLink: a.TitleLink, Text: a.Text,
+			Fields: fields, Footer: a.Footer, ImageURL: a.ImageURL,
+		})
+	}
+
 	isReply := raw.ThreadTs != "" && raw.ThreadTs != raw.Ts
 
 	return Message{
-		UserID:              raw.User,
+		UserID:              userID,
 		UserName:            userName,
 		PostType:            pt,
 		Timestamp:           ts,
 		TimestampUnix:       raw.Ts,
 		Text:                raw.Text,
 		Files:               files,
+		Attachments:         attachments,
+		Blocks:              raw.Blocks,
 		ThreadTimestampUnix: raw.ThreadTs,
 		IsReply:             isReply,
 		ChannelID:           channelID,

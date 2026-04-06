@@ -156,6 +156,22 @@ type socketEventPayload struct {
 			MimeType           string `json:"mimetype"`
 			URLPrivateDownload string `json:"url_private_download"`
 		} `json:"files"`
+		Attachments []struct {
+			Fallback  string `json:"fallback"`
+			Color     string `json:"color"`
+			Pretext   string `json:"pretext"`
+			Title     string `json:"title"`
+			TitleLink string `json:"title_link"`
+			Text      string `json:"text"`
+			Fields    []struct {
+				Title string `json:"title"`
+				Value string `json:"value"`
+				Short bool   `json:"short"`
+			} `json:"fields"`
+			Footer   string `json:"footer"`
+			ImageURL string `json:"image_url"`
+		} `json:"attachments"`
+		Blocks json.RawMessage `json:"blocks"`
 	} `json:"event"`
 }
 
@@ -315,24 +331,47 @@ func (c *SlackSocketClient) handleEnvelope(conn WsConn, raw []byte, filter Chann
 				URLPrivateDownload: f.URLPrivateDownload,
 			})
 		}
-		rawMsg := RawMessage{
-			Type:     "message",
-			User:     ev.User,
-			BotID:    ev.BotID,
-			Username: ev.Username,
-			Text:     ev.Text,
-			Ts:       ev.Ts,
-			ThreadTs: ev.ThreadTs,
-			Files:    files,
+		rawAttachments := make([]RawAttachment, 0, len(ev.Attachments))
+		for _, a := range ev.Attachments {
+			fields := make([]RawAttachmentField, 0, len(a.Fields))
+			for _, f := range a.Fields {
+				fields = append(fields, RawAttachmentField{Title: f.Title, Value: f.Value, Short: f.Short})
+			}
+			rawAttachments = append(rawAttachments, RawAttachment{
+				Fallback: a.Fallback, Color: a.Color, Pretext: a.Pretext,
+				Title: a.Title, TitleLink: a.TitleLink, Text: a.Text,
+				Fields: fields, Footer: a.Footer, ImageURL: a.ImageURL,
+			})
 		}
+
+		rawMsg := RawMessage{
+			Type:        "message",
+			User:        ev.User,
+			BotID:       ev.BotID,
+			Username:    ev.Username,
+			Text:        ev.Text,
+			Ts:          ev.Ts,
+			ThreadTs:    ev.ThreadTs,
+			Files:       files,
+			Attachments: rawAttachments,
+			Blocks:      ev.Blocks,
+		}
+		// Fall back to BotID when the user field is empty (common for bot messages).
+		userID := rawMsg.User
+		if userID == "" {
+			userID = rawMsg.BotID
+		}
+		attachments := toAttachments(rawMsg.Attachments)
 		msg := Message{
-			UserID:              rawMsg.User,
+			UserID:              userID,
 			UserName:            rawMsg.Username,
 			PostType:            postTypeFrom(rawMsg),
 			Timestamp:           formatTimestamp(rawMsg.Ts),
 			TimestampUnix:       rawMsg.Ts,
 			Text:                rawMsg.Text,
 			Files:               toFiles(rawMsg.Files),
+			Attachments:         attachments,
+			Blocks:              rawMsg.Blocks,
 			ThreadTimestampUnix: rawMsg.ThreadTs,
 			IsReply:             rawMsg.ThreadTs != "" && rawMsg.ThreadTs != rawMsg.Ts,
 			ChannelID:           ev.Channel,
@@ -372,4 +411,20 @@ func toFiles(rf []RawFile) []File {
 		})
 	}
 	return files
+}
+
+func toAttachments(ra []RawAttachment) []Attachment {
+	attachments := make([]Attachment, 0, len(ra))
+	for _, a := range ra {
+		fields := make([]AttachmentField, 0, len(a.Fields))
+		for _, f := range a.Fields {
+			fields = append(fields, AttachmentField{Title: f.Title, Value: f.Value, Short: f.Short})
+		}
+		attachments = append(attachments, Attachment{
+			Fallback: a.Fallback, Color: a.Color, Pretext: a.Pretext,
+			Title: a.Title, TitleLink: a.TitleLink, Text: a.Text,
+			Fields: fields, Footer: a.Footer, ImageURL: a.ImageURL,
+		})
+	}
+	return attachments
 }

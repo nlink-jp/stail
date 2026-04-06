@@ -150,7 +150,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 > For very large channels, use `--start` / `--end` to export in smaller time ranges.
 > Both flags accept RFC3339 (e.g. `2025-01-01T00:00:00Z`) or Slack ts format (e.g. `1742378100.000000`).
 
-**Export JSON schema** (compatible with scat):
+**Export JSON schema** (compatible with scat and scli — see [`docs/EXPORT_FORMAT.md`](docs/EXPORT_FORMAT.md) for full specification):
 
 ```json
 {
@@ -165,7 +165,6 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
       "timestamp_unix": "1742378100.000000",
       "text": "Hello!",
       "files": [],
-      "thread_timestamp_unix": "",
       "is_reply": false
     }
   ]
@@ -173,6 +172,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 ```
 
 `post_type` is either `"user"` or `"bot"`.
+Legacy `attachments` and Block Kit `blocks` are included when present (omitted when empty).
 
 ### List channels (`channel list`)
 

@@ -153,7 +153,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 > 非常に大きなチャンネルをエクスポートする場合は `--start` / `--end` で期間を絞ることを推奨します。
 > どちらのフラグも RFC3339 形式（例: `2025-01-01T00:00:00Z`）と Slack ts 形式（例: `1742378100.000000`）の両方に対応しています。
 
-**エクスポート JSON スキーマ**（scat と互換）:
+**エクスポート JSON スキーマ**（scat・scli と互換 — 詳細は [`docs/EXPORT_FORMAT.md`](docs/EXPORT_FORMAT.md) を参照）:
 
 ```json
 {
@@ -168,7 +168,6 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
       "timestamp_unix": "1742378100.000000",
       "text": "こんにちは！",
       "files": [],
-      "thread_timestamp_unix": "",
       "is_reply": false
     }
   ]
@@ -176,6 +175,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 ```
 
 `post_type` は `"user"`（ユーザ投稿）または `"bot"`（Bot 投稿）のいずれかです。
+レガシー `attachments` および Block Kit `blocks` はメッセージに含まれる場合のみ出力されます。
 
 ### チャンネル一覧 (`channel list`)
 
