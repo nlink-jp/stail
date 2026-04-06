@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-04-06
+
+### Added
+
+- **Attachments in export** — Legacy rich attachments (URL unfurls, bot cards) are now included in the export JSON as `attachments` array with `fallback`, `color`, `title`, `text`, `fields`, `footer`, and `image_url`.
+- **Blocks in export** — Block Kit payloads are preserved as raw JSON in the `blocks` field.
+- **Attachment fallback in text output** — Text-format display shows `[添付: <fallback>]` for messages with legacy attachments.
+- **`docs/EXPORT_FORMAT.md`** — Shared export schema specification covering scat, stail, and scli.
+
+### Fixed
+
+- **Bot `user_id` fallback** — Bot messages with an empty `user` field now fall back to `bot_id`, preventing blank `user_id` in exports.
+
 ## [0.3.0] - 2026-03-29
 
 ### Added
