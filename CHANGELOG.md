@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-05-22
+
+### Changed
+
+- **Darwin releases are now Developer ID signed and Apple-notarized.**
+  `stail-v0.4.1-darwin-{amd64,arm64}.zip` carry full Apple Developer
+  ID Application signatures and notarization tickets from Apple. End
+  users on macOS no longer need to bypass Gatekeeper with right-click
+  → Open or `xattr -d com.apple.quarantine` on first launch; local
+  users who place `stail` under Dropbox-synced (or any other
+  FileProvider-managed) paths are no longer killed by macOS's
+  ad-hoc + provenance distrust policy. Pipeline:
+  `scripts/codesign-darwin.sh` + `scripts/notarize-darwin.sh`, driven
+  by `make package`. Adopts the org-wide convention in
+  `nlink-jp/.github` CONVENTIONS.md §Code Signing.
+- **Release zips now include README.md** alongside the binary,
+  aligning with the chatops-series CLAUDE.md release convention.
+
+No behaviour change to the binary itself — feature-wise this is
+identical to v0.4.0.
+
 ## [0.4.0] - 2026-04-06
 
 ### Added
