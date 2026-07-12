@@ -282,7 +282,7 @@ env:
 make build
 
 # 全プラットフォーム向けにクロスコンパイル
-# (macOS amd64/arm64, Linux amd64/arm64, Windows amd64)
+# (macOS arm64, Linux amd64/arm64, Windows amd64)
 make build-all
 
 # テスト実行
