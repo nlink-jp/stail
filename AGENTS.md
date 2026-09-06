@@ -164,13 +164,13 @@ git push origin vX.Y.Z
 
 # 5. 全プラットフォーム向けバイナリをビルド
 make build-all
-# → dist/stail-darwin-amd64, dist/stail-darwin-arm64,
+# → dist/stail-darwin-arm64,
 #    dist/stail-linux-amd64, dist/stail-linux-arm64,
 #    dist/stail-windows-amd64.exe
 
 # 6. GitHub Release を作成してバイナリをアップロード
 gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
-gh release upload vX.Y.Z dist/stail-darwin-amd64 dist/stail-darwin-arm64 \
+gh release upload vX.Y.Z dist/stail-darwin-arm64 \
   dist/stail-linux-amd64 dist/stail-linux-arm64 dist/stail-windows-amd64.exe
 ```
 
