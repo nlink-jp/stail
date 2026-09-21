@@ -18,6 +18,8 @@ stail/
 │   ├── format/   # テキスト／JSON フォーマッタ
 │   └── cmd/      # Cobra サブコマンド群
 └── docs/
+    ├── en/   # 英語ドキュメント（言語サフィックスなし）
+    └── ja/   # 日本語ドキュメント（`.ja.md` サフィックス）
 ```
 
 **パッケージの責務を越えない。** `cmd` パッケージのみが `os.Stdout` / `os.Stderr` に書く。
@@ -130,6 +132,7 @@ if errors.Is(err, os.ErrNotExist) { ... }
 | `CHANGELOG.md` | `[Unreleased]` セクションに追記 |
 
 `docs/` 配下のファイル（`CONFIG_FORMAT.md` 等）は関連する場合のみ更新する。
+英語は `docs/en/<NAME>.md`、日本語は `docs/ja/<NAME>.ja.md` に置き、両方を同時に更新する。
 
 ---
 

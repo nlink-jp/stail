@@ -138,7 +138,7 @@ stail profile remove staging
 - The config file is stored with `0600` permissions. Do not change this.
 - Tokens are never written to logs or debug output.
 - Do not commit `config.json` to version control.
-- For CI/CD environments, use [Server Mode](../README.md#server-mode) with
+- For CI/CD environments, use [Server Mode](../../README.md#server-mode) with
   environment variables instead of a config file.
 
 ---
@@ -147,4 +147,4 @@ stail profile remove staging
 
 When `STAIL_MODE=server` is set, the config file is ignored entirely and all
 settings are read from environment variables. See the
-[README](../README.md#server-mode) for details.
+[README](../../README.md#server-mode) for details.

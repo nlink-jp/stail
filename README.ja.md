@@ -44,7 +44,7 @@ make build
 
 ## 初期設定
 
-詳細な手順については **[Slack セットアップガイド](./docs/SLACK_SETUP.ja.md)** を参照してください。
+詳細な手順については **[Slack セットアップガイド](./docs/ja/SLACK_SETUP.ja.md)** を参照してください。
 
 ### 1. Slack App の作成
 
@@ -153,7 +153,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 > 非常に大きなチャンネルをエクスポートする場合は `--start` / `--end` で期間を絞ることを推奨します。
 > どちらのフラグも RFC3339 形式（例: `2025-01-01T00:00:00Z`）と Slack ts 形式（例: `1742378100.000000`）の両方に対応しています。
 
-**エクスポート JSON スキーマ**（scat・scli と互換 — 詳細は [`docs/EXPORT_FORMAT.md`](docs/EXPORT_FORMAT.md) を参照）:
+**エクスポート JSON スキーマ**（scat・scli と互換 — 詳細は [`docs/ja/EXPORT_FORMAT.ja.md`](docs/ja/EXPORT_FORMAT.ja.md) を参照）:
 
 ```json
 {

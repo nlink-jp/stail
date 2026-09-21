@@ -42,7 +42,7 @@ make build
 
 ## Initial Setup
 
-For a detailed step-by-step walkthrough, see the **[Slack Setup Guide](./docs/SLACK_SETUP.md)**.
+For a detailed step-by-step walkthrough, see the **[Slack Setup Guide](./docs/en/SLACK_SETUP.md)**.
 
 ### 1. Create a Slack App
 
@@ -150,7 +150,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 > For very large channels, use `--start` / `--end` to export in smaller time ranges.
 > Both flags accept RFC3339 (e.g. `2025-01-01T00:00:00Z`) or Slack ts format (e.g. `1742378100.000000`).
 
-**Export JSON schema** (compatible with scat and scli — see [`docs/EXPORT_FORMAT.md`](docs/EXPORT_FORMAT.md) for full specification):
+**Export JSON schema** (compatible with scat and scli — see [`docs/en/EXPORT_FORMAT.md`](docs/en/EXPORT_FORMAT.md) for full specification):
 
 ```json
 {
