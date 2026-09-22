@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-09-23
+
+### Changed
+
+- `stail export --help` describes its output as the shared Slack export schema,
+  not scat's export log schema: scat v2 now follows scli's schema, and stail
+  writes a subset of it.
+
 ### Docs
 
 - State, per field, which tool writes what in the shared export schema. scat v2
