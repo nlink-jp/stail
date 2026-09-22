@@ -213,6 +213,15 @@ expires after one hour.
 stail cache clear   # delete cached data for the active profile
 ```
 
+### Version (`--version`, `version`)
+
+```bash
+stail --version   # stail version v0.6.0
+stail version     # the same line
+```
+
+Neither form reads the config file.
+
 ---
 
 ## Global Flags

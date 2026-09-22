@@ -213,6 +213,15 @@ stail はチャンネル一覧を `~/.config/stail/cache/<profile>/` に 1 時�
 stail cache clear   # アクティブプロファイルのキャッシュを削除
 ```
 
+### バージョン (`--version`, `version`)
+
+```bash
+stail --version   # stail version v0.6.0
+stail version     # 同じ行を出力
+```
+
+どちらも設定ファイルを読みません。
+
 ---
 
 ## グローバルフラグ

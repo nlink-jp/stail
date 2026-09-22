@@ -37,8 +37,9 @@ or 'stail export' to download full channel history.`,
 	SilenceUsage: true,
 }
 
-// Execute runs the CLI. Call this from main().
-func Execute() {
+// Execute runs the CLI with the build's version string. Call this from main().
+func Execute(version string) {
+	rootCmd.Version = version
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

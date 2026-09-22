@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`--version` flag and `version` subcommand.** Both print
+  `stail version <version>` and read no config file. stail answered neither:
+  the build injected its version into a variable nothing read, so the Homebrew
+  formula's `brew test` (`stail --version`) failed, and `make verify-release`
+  refused the 0.5.1 build.
+
 ## [0.5.1] - 2026-09-23
+
+Tagged but never published: `make verify-release` refused its build because
+stail had no `--version`. Everything below ships in 0.6.0.
 
 ### Changed
 
