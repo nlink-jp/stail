@@ -1,7 +1,10 @@
 # Export Log Data Format
 
-Shared JSON schema for Slack channel message exports.
-This format is used by **scat**, **stail**, and **scli**.
+Shared JSON schema for Slack channel message exports, used by **scat**,
+**stail** and **scli**. The three do not write identical documents: this page
+describes the schema and states, per field, which tool writes it. scat v2 and
+scli write the full document; **stail writes a subset** — it never writes
+`local_path` and never groups replies under their parents.
 
 ## Top-level structure
 
@@ -34,7 +37,7 @@ This format is used by **scat**, **stail**, and **scli**.
 | `id`         | string | yes      | Slack file ID                                    |
 | `name`       | string | yes      | Original filename                                |
 | `mimetype`   | string | yes      | MIME type (e.g. `image/png`, `application/pdf`)  |
-| `local_path` | string | no       | Absolute path to downloaded file (only when `--save-dir` / `--output-files` is used) |
+| `local_path` | string | see note | Absolute path to the downloaded file. scat and scli always write it, empty when no file was saved; **stail never writes it**, including with `--save-dir` |
 
 ## Attachment object
 
@@ -94,13 +97,17 @@ Set directly from the Slack API's `thread_ts` field:
 
 When a file download fails (HTTP error, rate limit exhaustion), the tool logs
 a warning to stderr and continues the export. The file's metadata (`id`,
-`name`, `mimetype`) is preserved; `local_path` remains empty.
+`name`, `mimetype`) is preserved; in scat and scli `local_path` is then empty.
 
 ### Thread expansion
 
 Tool-specific behavior:
+- **scat** (v2 and later): Expands threads and places replies under their parent,
+  as scli does.
 - **scli**: Expands threads by fetching `conversations.replies` for each parent.
 - **stail**: Does not expand threads; exports only `conversations.history` pages.
+
+`text` holds the original API text in every tool: mentions stay as `<@U…>`.
 
 ## Example
 

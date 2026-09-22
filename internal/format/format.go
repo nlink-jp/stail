@@ -1,5 +1,5 @@
 // Package format provides output formatters for Slack messages.
-// Text format is designed for human reading; JSON format mirrors scat's export log schema.
+// Text format is designed for human reading; JSON format follows the shared Slack export schema.
 package format
 
 import (
@@ -46,7 +46,8 @@ func WriteMessage(w io.Writer, msg slack.Message, fmt Format) error {
 	}
 }
 
-// exportedMessage matches scat's ExportedMessage JSON schema.
+// exportedMessage matches the shared export schema's message object.
+// stail writes a subset: no local_path, and replies are not grouped under parents.
 type exportedMessage struct {
 	UserID              string               `json:"user_id"`
 	UserName            string               `json:"user_name,omitempty"`
@@ -61,7 +62,8 @@ type exportedMessage struct {
 	IsReply             bool                 `json:"is_reply"`
 }
 
-// exportedFile matches scat's ExportedFile JSON schema.
+// exportedFile matches the shared export schema's file object, without local_path:
+// stail saves files with --save-dir but does not record their paths.
 type exportedFile struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
@@ -88,7 +90,7 @@ type exportedAttachmentField struct {
 	Short bool   `json:"short"`
 }
 
-// ExportedLog matches scat's ExportedLog JSON schema.
+// ExportedLog matches the shared export schema's top-level document.
 type ExportedLog struct {
 	ExportTimestamp string            `json:"export_timestamp"`
 	ChannelName     string            `json:"channel_name"`
@@ -116,7 +118,7 @@ func WriteExportedLog(w io.Writer, log ExportedLog) error {
 	return enc.Encode(log)
 }
 
-// WriteExportStream writes a scat-compatible JSON document from pages of messages
+// WriteExportStream writes a shared-schema JSON document from pages of messages
 // without accumulating all messages into a single slice.
 // pages must be in newest-first order (as returned by the Slack API);
 // output is written in chronological (oldest-first) order.

@@ -5,7 +5,8 @@
 エクスポートしたりすることができます。
 
 [scat](https://github.com/nlink-jp/scat) の姉妹ツールとして設計されています。
-scat が Slack に**投稿する**ツールであるのに対し、stail は Slack を**読む**ツールです。
+stail は人のトークンでチャンネルを追いかけ、履歴を書き出します。
+scat は bot のトークンで投稿とチャンネル管理を行うサービス側のツールです。
 
 ---
 
@@ -15,8 +16,9 @@ scat が Slack に**投稿する**ツールであるのに対し、stail は Sla
   に接続し、新着メッセージを随時表示します。
 - **過去ログの表示** — `stail tail -n 50` で最新 N 件を表示して終了します。
 - **絶対時刻指定の表示** — `stail tail --since 2024-01-15T10:00:00Z` で指定した時刻以降のメッセージを全件表示します（Slack ts 形式または RFC3339 形式に対応）。
-- **チャンネルエクスポート** — `stail export` でチャンネルの全履歴を scat の
-  export log 形式と互換性のある JSON ファイルとして保存します。
+- **チャンネルエクスポート** — `stail export` でチャンネルの全履歴を共通のエクスポート形式の
+  JSON ファイルとして保存します（scat・scli の出力との関係は
+  [`docs/ja/EXPORT_FORMAT.ja.md`](docs/ja/EXPORT_FORMAT.ja.md) を参照）。
 - **チャンネル一覧** — `stail channel list` でアクセス可能な全チャンネルと
   その ID を一覧表示します。
 - **プロファイル管理** — トークンやデフォルトチャンネルごとに複数の名前付き
@@ -131,7 +133,7 @@ stail tail -c "#general" -f --save-dir ./downloads
 
 ### チャンネル履歴のエクスポート (`export`)
 
-チャンネルの全履歴を scat の export log 形式と互換性のある JSON として出力します。
+チャンネルの全履歴を共通のエクスポート形式の JSON として出力します。
 
 ```bash
 # 標準出力へ出力
@@ -153,7 +155,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 > 非常に大きなチャンネルをエクスポートする場合は `--start` / `--end` で期間を絞ることを推奨します。
 > どちらのフラグも RFC3339 形式（例: `2025-01-01T00:00:00Z`）と Slack ts 形式（例: `1742378100.000000`）の両方に対応しています。
 
-**エクスポート JSON スキーマ**（scat・scli と互換 — 詳細は [`docs/ja/EXPORT_FORMAT.ja.md`](docs/ja/EXPORT_FORMAT.ja.md) を参照）:
+**エクスポート JSON スキーマ**（共通形式。stail は scat・scli が書く項目の一部を書きます — 詳細は [`docs/ja/EXPORT_FORMAT.ja.md`](docs/ja/EXPORT_FORMAT.ja.md) を参照）:
 
 ```json
 {

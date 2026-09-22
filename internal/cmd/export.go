@@ -17,7 +17,7 @@ var exportCmd = &cobra.Command{
 	Short: "Export channel message history",
 	Long: `Export the full message history of a Slack channel.
 
-Output is a JSON document matching scat's export log schema:
+Output is a JSON document in the shared Slack export schema:
   { "export_timestamp": "...", "channel_name": "#general", "messages": [...] }
 
 Examples:

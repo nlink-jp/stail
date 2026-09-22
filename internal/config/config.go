@@ -1,6 +1,6 @@
 // Package config manages stail configuration files and profiles.
 // Config files are stored at ~/.config/stail/config.json with 0600 permissions.
-// The schema mirrors scat's profile-based structure.
+// The schema follows the same profile-based structure as the sibling Slack CLIs.
 package config
 
 import (
@@ -31,7 +31,7 @@ type Profile struct {
 }
 
 // Config is the top-level configuration structure.
-// Field names mirror scat's config schema for consistency.
+// Field names follow the sibling Slack CLIs' config schema for consistency.
 type Config struct {
 	CurrentProfile string             `json:"current_profile"`
 	Profiles       map[string]Profile `json:"profiles"`

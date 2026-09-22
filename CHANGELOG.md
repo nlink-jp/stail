@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Docs
+
+- State, per field, which tool writes what in the shared export schema. scat v2
+  aligned its export with scli, so "compatible with scat" no longer says enough:
+  scat and scli always write `local_path` and group replies under their parents,
+  and stail writes neither. Drop the reference to `--output-files`, a scat v1
+  flag that no longer exists, and to scat's removed `export log` command.
+
 ### Fixed
 
 - **`make verify-release` now fails closed.** Its last block chained unzip, the

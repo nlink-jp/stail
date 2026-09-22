@@ -3,8 +3,10 @@
 `stail` is a read-only command-line tool for Slack. It lets you stream channel
 messages in real time — like `tail -f` — or export full channel history to JSON.
 
-It is designed as a companion to [scat](https://github.com/nlink-jp/scat): scat
-**posts** to Slack, stail **reads** from it.
+It is designed as a companion to [scat](https://github.com/nlink-jp/scat):
+stail follows a channel as it happens and exports history under a user token,
+while scat is the service-side tool that posts and manages channels with a bot
+token.
 
 ---
 
@@ -15,7 +17,9 @@ It is designed as a companion to [scat](https://github.com/nlink-jp/scat): scat
 - **Historical tail** — `stail tail -n 50` shows the last N messages and exits.
 - **Timestamp-based tail** — `stail tail --since 2024-01-15T10:00:00Z` streams all messages from an absolute point in time (Slack ts or RFC3339).
 - **Channel export** — `stail export` downloads full channel history as a
-  structured JSON file compatible with scat's export log format.
+  structured JSON file in the shared export schema (see
+  [`docs/en/EXPORT_FORMAT.md`](docs/en/EXPORT_FORMAT.md) for how it relates to
+  scat's and scli's exports).
 - **Channel listing** — `stail channel list` shows all accessible channels with
   their IDs.
 - **Profile management** — Multiple named profiles, each with its own token and
@@ -128,7 +132,7 @@ Attached files are shown inline in text mode:
 
 ### Export channel history (`export`)
 
-Exports the full history as a JSON document matching scat's export log schema:
+Exports the full history as a JSON document in the shared export schema:
 
 ```bash
 # Export to stdout
@@ -150,7 +154,7 @@ stail export -c "#general" --output archive.json --save-dir ./attachments
 > For very large channels, use `--start` / `--end` to export in smaller time ranges.
 > Both flags accept RFC3339 (e.g. `2025-01-01T00:00:00Z`) or Slack ts format (e.g. `1742378100.000000`).
 
-**Export JSON schema** (compatible with scat and scli — see [`docs/en/EXPORT_FORMAT.md`](docs/en/EXPORT_FORMAT.md) for full specification):
+**Export JSON schema** (the shared schema; stail writes a subset of what scat and scli write — see [`docs/en/EXPORT_FORMAT.md`](docs/en/EXPORT_FORMAT.md)):
 
 ```json
 {

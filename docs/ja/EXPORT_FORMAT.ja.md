@@ -1,7 +1,8 @@
 # エクスポートログのデータ形式
 
-Slack チャンネルのメッセージエクスポートで共有される JSON スキーマ。
-この形式は **scat**、**stail**、**scli** で使用される。
+Slack チャンネルのメッセージエクスポートで共有される JSON スキーマ。**scat**、**stail**、**scli**
+で使用される。3 つの出力は同一ではない。本書はスキーマを定め、項目ごとにどのツールが書くかを示す。
+scat v2 と scli は全項目を書き、**stail は一部だけを書く** — `local_path` を書かず、返信を親にまとめない。
 
 ## トップレベル構造
 
@@ -34,7 +35,7 @@ Slack チャンネルのメッセージエクスポートで共有される JSON
 | `id`         | string | はい     | Slack のファイル ID                              |
 | `name`       | string | はい     | 元のファイル名                                   |
 | `mimetype`   | string | はい     | MIME タイプ（例: `image/png`、`application/pdf`）|
-| `local_path` | string | いいえ   | ダウンロードしたファイルの絶対パス（`--save-dir` / `--output-files` を使った場合のみ） |
+| `local_path` | string | 注参照   | ダウンロードしたファイルの絶対パス。scat と scli は常に書き、保存しなかった場合は空文字。**stail は書かない**（`--save-dir` を使っても同じ） |
 
 ## Attachment オブジェクト
 
@@ -93,13 +94,16 @@ Slack API の `thread_ts` フィールドから直接設定される:
 
 ファイルのダウンロードが失敗した場合（HTTP エラー、レート制限の枯渇）、ツールは
 stderr に警告を出力してエクスポートを続行する。ファイルのメタデータ（`id`、
-`name`、`mimetype`）は保持され、`local_path` は空のままになる。
+`name`、`mimetype`）は保持され、scat と scli では `local_path` が空文字になる。
 
 ### スレッド展開
 
 ツールごとの動作:
+- **scat**（v2 以降）: scli と同様にスレッドを展開し、返信を親の下にまとめる。
 - **scli**: 親ごとに `conversations.replies` を取得してスレッドを展開する。
 - **stail**: スレッドを展開せず、`conversations.history` のページのみをエクスポートする。
+
+`text` はどのツールでも API の原文で、メンションは `<@U…>` のまま。
 
 ## 例
 
