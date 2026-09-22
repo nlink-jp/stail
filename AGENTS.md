@@ -193,7 +193,7 @@ go build ./...   # コンパイルチェックのみ。バイナリは更新さ�
 make build       # ./dist/stail を生成（動作確認はこちら）
 make build-all   # 全プラットフォーム向けクロスコンパイル
 make test        # 全テスト実行
-make verify-release  # gate: .notarized marker + freshness (run before upload)
+make verify-release  # gate: notarized, fresh, runs at this version, clean linux archives (run before upload)
 ```
 
 **サンドボックス・制限環境では環境変数を指定する:**
