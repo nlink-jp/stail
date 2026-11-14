@@ -10,7 +10,7 @@
 ```
 stail/
 ├── main.go                      # エントリポイント（最小限）
-├── go.mod                       # Go 1.23, module: github.com/nlink-jp/stail
+├── go.mod                       # Go 1.27.4, module: github.com/nlink-jp/stail
 ├── Makefile
 ├── internal/
 │   ├── config/   # 設定ファイル管理・環境変数解決
