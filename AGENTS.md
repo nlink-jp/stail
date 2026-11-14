@@ -193,6 +193,7 @@ go build ./...   # コンパイルチェックのみ。バイナリは更新さ�
 make build       # ./dist/stail を生成（動作確認はこちら）
 make build-all   # 全プラットフォーム向けクロスコンパイル
 make test        # 全テスト実行
+make vuln            # govulncheck over the build; `make package` runs it first and stops on a finding
 make verify-release  # gate: notarized, fresh, runs at this version, clean linux archives (run before upload)
 ```
 
