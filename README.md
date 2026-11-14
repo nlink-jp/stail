@@ -216,7 +216,7 @@ stail cache clear   # delete cached data for the active profile
 ### Version (`--version`, `version`)
 
 ```bash
-stail --version   # stail version v0.6.0
+stail --version   # stail version v0.6.1
 stail version     # the same line
 ```
 

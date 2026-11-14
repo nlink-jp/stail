@@ -216,7 +216,7 @@ stail cache clear   # アクティブプロファイルのキャッシュを削�
 ### バージョン (`--version`, `version`)
 
 ```bash
-stail --version   # stail version v0.6.0
+stail --version   # stail version v0.6.1
 stail version     # 同じ行を出力
 ```
 
